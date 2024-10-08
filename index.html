@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>운동 계획 생성기</title>
+</head>
+<body>
+    <div class="container">
+        <h1>운동 계획 생성기</h1>
+        
+        <div id="goal-selection">
+            <h2>목표 선택</h2>
+            <form id="goal-form">
+                <label for="weight">체중 (kg):</label>
+                <input type="number" id="weight" required>
+                
+                <label for="height">신장 (cm):</label>
+                <input type="number" id="height" required>
+                
+                <label for="age">나이:</label>
+                <input type="number" id="age" required>
+                
+                <button type="button" id="select-goal">목표 선택</button>
+            </form>
+        </div>
+
+        <div id="category-selection" style="display: none;">
+            <h2>운동 카테고리 선택</h2>
+            <button class="category-button" data-category="upper-body">상체</button>
+            <button class="category-button" data-category="lower-body">하체</button>
+            <button class="category-button" data-category="core">코어</button>
+            <button class="category-button" data-category="shoulders">어깨</button>
+            <button class="category-button" data-category="cardio">유산소</button>
+        </div>
+
+        <div id="exercise-section" style="display: none;">
+            <h2>운동 선택</h2>
+            <div id="exercise-list" class="exercise-list"></div>
+            <button id="start-workout" style="display: none;">운동 시작</button>
+        </div>
+
+        <div id="weight-adjustment-section" style="display: none;">
+            <h2>무게 조절</h2>
+            <div id="weight-adjustment-list"></div>
+            <button id="begin-workout">운동 시작하기</button>
+        </div>
+
+        <div id="timer-section" style="display: none;">
+            <h2>현재 운동</h2>
+            <div id="current-exercise"></div>
+            <div class="timer-section">
+                <div id="timer">00:00</div>
+                <button id="complete-set">세트 완료</button>
+            </div>
+        </div>
+
+        <div id="history-section" style="display: none;">
+            <h2>운동 기록</h2>
+            <div id="history-container" class="history-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const exercises = {
+            'upper-body': [
+                { name: '벤치프레스', defaultWeight: 50 },
+                { name: '랫풀다운', defaultWeight: 40 },
+                { name: '펙덱 플라이', defaultWeight: 30 },
+                { name: '푸쉬업', defaultWeight: 0 },
+                { name: '덤벨 컬', defaultWeight: 20 },
+                { name: '트라이셉스 푸쉬다운', defaultWeight: 25 },
+                { name: '숄더 프레스', defaultWeight: 30 },
+                { name: '딥스', defaultWeight: 0 },
+                { name: '체중 스쿼트', defaultWeight: 0 },
+                { name: '덤벨 플라이', defaultWeight: 15 }
+            ],
+            'lower-body': [
+                { name: '스쿼트', defaultWeight: 60 },
+                { name: '데드리프트', defaultWeight: 70 },
+                { name: '런지', defaultWeight: 25 },
+                { name: '레그프레스', defaultWeight: 80 },
+                { name: '레그컬', defaultWeight: 35 },
+                { name: '카프 레이즈', defaultWeight: 20 },
+                { name: '힙 쓰러스터', defaultWeight: 60 },
+                { name: '스티프 레그 데드리프트', defaultWeight: 65 },
+                { name: '복합 스쿼트', defaultWeight: 70 },
+                { name: '사이드 레그 레이즈', defaultWeight: 0 }
+            ],
+            'core': [
+                { name: '플랭크', defaultWeight: 0 },
+                { name: '러시안 트위스트', defaultWeight: 10 },
+                { name: '바이시클 크런치', defaultWeight: 5 },
+                { name: '레그 레이즈', defaultWeight: 5 },
+                { name: '사이드 플랭크', defaultWeight: 0 },
+                { name: '플랭크 잭', defaultWeight: 0 },
+                { name: '마운틴 클라이머', defaultWeight: 0 },
+                { name: '트위스트 크런치', defaultWeight: 5 },
+                { name: '다리 들기', defaultWeight: 5 },
+                { name: '히프 브릿지', defaultWeight: 10 }
+            ],
+            'shoulders': [
+                { name: '덤벨 숄더 프레스', defaultWeight: 25 },
+                { name: '레터럴 레이즈', defaultWeight: 15 },
+                { name: '프론트 레이즈', defaultWeight: 15 },
+                { name: '업라이트 로우', defaultWeight: 20 },
+                { name: '페이스 풀', defaultWeight: 20 },
+                { name: '덤벨 슈러그', defaultWeight: 30 },
+                { name: '오버헤드 프레스', defaultWeight: 40 },
+                { name: '덤벨 로우', defaultWeight: 20 },
+                { name: '덤벨 리어 델트 플라이', defaultWeight: 15 },
+                { name: '인클라인 덤벨 프레스', defaultWeight: 30 }
+            ],
+            'cardio': [
+                { name: '달리기', defaultWeight: 0 },
+                { name: '자전거 타기', defaultWeight: 0 },
+                { name: '수영', defaultWeight: 0 },
+                { name: '점핑잭', defaultWeight: 0 },
+                { name: '버피', defaultWeight: 0 },
+                { name: '로잉 머신', defaultWeight: 0 },
+                { name: '하이 니즈', defaultWeight: 0 },
+                { name: '스텝업', defaultWeight: 0 },
+                { name: '스쿼트 점프', defaultWeight: 0 },
+                { name: '클라이밍', defaultWeight: 0 }
+            ]
+        };
+
+        let selectedExercises = [];
+        let history = [];
+
+        document.getElementById('select-goal').addEventListener('click', function() {
+            const weight = document.getElementById('weight').value;
+            const height = document.getElementById('height').value;
+            const age = document.getElementById('age').value;
+            if (weight && height && age) {
+                showCategorySelection();
+            }
+        });
+        function showCategorySelection() {
+            document.getElementById('goal-selection').style.display = 'none';
+            document.getElementById('category-selection').style.display = 'block';
+
+            const categoryButtons = document.querySelectorAll('.category-button');
+            categoryButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const category = button.dataset.category;
+                    showExercises(category);
+                });
+            });
+        }
+
+
+        function showExercises(category) {
+            document.getElementById('category-selection').style.display = 'none';
+            const exerciseList = document.getElementById('exercise-list');
+            exerciseList.innerHTML = '';
+
+            exercises[category].forEach(exercise => {
+                const card = document.createElement('div');
+                card.className = 'exercise-card';
+                card.dataset.exerciseName = exercise.name;
+                card.dataset.defaultWeight = exercise.defaultWeight;
+                card.innerHTML = `<strong>${exercise.name}</strong>
+                                  <p>기본 무게: ${exercise.defaultWeight}kg</p>`;
+                
+                card.addEventListener('click', () => toggleExerciseSelection(card));
+                exerciseList.appendChild(card);
+            });
+
+            document.getElementById('exercise-section').style.display = 'block';
+            document.getElementById('start-workout').style.display = 'block';
+        }
+
+        function toggleExerciseSelection(card) {
+            card.classList.toggle('selected');
+            const exerciseName = card.dataset.exerciseName;
+
+            if (card.classList.contains('selected')) {
+                const exercise = exercises[Object.keys(exercises).find(cat => exercises[cat].some(e => e.name === exerciseName))].find(e => e.name === exerciseName);
+                selectedExercises.push({ name: exercise.name, weight: exercise.defaultWeight });
+            } else {
+                selectedExercises = selectedExercises.filter(e => e.name !== exerciseName);
+            }
+        }
+
+        document.getElementById('start-workout').addEventListener('click', function() {
+            if (selectedExercises.length > 0) {
+                showWeightAdjustment();
+            } else {
+                alert('운동을 선택해주세요.');
+            }
+        });
+
+        function showWeightAdjustment() {
+            document.getElementById('exercise-section').style.display = 'none';
+            const weightAdjustmentList = document.getElementById('weight-adjustment-list');
+            weightAdjustmentList.innerHTML = '';
+
+            selectedExercises.forEach(exercise => {
+                const exerciseDiv = document.createElement('div');
+                exerciseDiv.className = 'weight-adjustment-card';
+                exerciseDiv.innerHTML = `<strong>${exercise.name}</strong>
+                                         <p>현재 무게: <span class="weight-display">${exercise.weight.toFixed(1)}</span>kg</p>
+                                         <button class="decrease-weight">-</button>
+                                         <button class="increase-weight">+</button>`;
+                
+                weightAdjustmentList.appendChild(exerciseDiv);
+            });
+
+            document.getElementById('weight-adjustment-section').style.display = 'block';
+            document.getElementById('begin-workout').style.display = 'block';
+
+            addWeightAdjustmentListeners();
+        }
+
+        function addWeightAdjustmentListeners() {
+            const increaseButtons = document.querySelectorAll('.increase-weight');
+            const decreaseButtons = document.querySelectorAll('.decrease-weight');
+
+            increaseButtons.forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    selectedExercises[index].weight += 0.5;
+                    updateWeightDisplay();
+                });
+            });
+
+            decreaseButtons.forEach((button, index) => {
+                button.addEventListener('click', function() {
+                    if (selectedExercises[index].weight > 0.5) {
+                        selectedExercises[index].weight -= 0.5;
+                        updateWeightDisplay();
+                    }
+                });
+            });
+        }
+
+        function updateWeightDisplay() {
+            const weightDisplays = document.querySelectorAll('.weight-display');
+            weightDisplays.forEach((display, index) => {
+                display.innerText = selectedExercises[index].weight.toFixed(1);
+            });
+        }
+
+        document.getElementById('begin-workout').addEventListener('click', function() {
+            startWorkout();
+        });
+
+        function startWorkout() {
+            document.getElementById('weight-adjustment-section').style.display = 'none';
+            document.getElementById('timer-section').style.display = 'block';
+            let currentExerciseIndex = 0;
+
+            function nextExercise() {
+                if (currentExerciseIndex < selectedExercises.length) {
+                    const exercise = selectedExercises[currentExerciseIndex];
+                    const exerciseWeight = exercise.weight;
+
+                    document.getElementById('current-exercise').innerHTML = `${exercise.name} - 무게: ${exerciseWeight.toFixed(1)}kg`;
+                    startTimer(60); // 60초 운동
+                } else {
+                    alert('운동이 완료되었습니다!');
+                    document.getElementById('current-exercise').innerHTML = '운동이 완료되었습니다!';
+                    showHistory();
+                }
+            }
+
+            function startTimer(duration) {
+                let timer = duration;
+                const timerDisplay = document.getElementById('timer');
+                timerDisplay.innerHTML = formatTime(timer);
+
+                const interval = setInterval(() => {
+                    timer--;
+                    timerDisplay.innerHTML = formatTime(timer);
+                    if (timer <= 0) {
+                        clearInterval(interval);
+                        handleSetCompletion();
+                    }
+                }, 1000);
+
+                document.getElementById('complete-set').style.display = 'block';
+                document.getElementById('complete-set').onclick = function() {
+                    clearInterval(interval);
+                    handleSetCompletion();
+                };
+            }
+
+            function handleSetCompletion() {
+                const exercise = selectedExercises[currentExerciseIndex];
+                const exerciseWeight = exercise.weight;
+
+                // 운동 기록 저장
+                history.push({
+                    name: exercise.name,
+                    weight: exerciseWeight.toFixed(1),
+                    date: new Date().toLocaleString()
+                });
+
+                const completeButton = document.getElementById('complete-set');
+                completeButton.style.display = 'none';
+                currentExerciseIndex++;
+                nextExercise();
+            }
+
+            nextExercise();
+        }
+
+        function showHistory() {
+            const historyContainer = document.getElementById('history-container');
+            historyContainer.innerHTML = '';
+
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `${item.name} - ${item.weight}kg (완료: ${item.date})`;
+                historyContainer.appendChild(historyItem);
+            });
+
+            document.getElementById('history-section').style.display = 'block';
+        }
+
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+    </script>
+        <style>
+            .container {
+                max-width: 600px;
+                margin: auto;
+                text-align: center;
+            }
+    
+            #goal-selection, #category-selection, #exercise-section, #timer-section, #history-section {
+                margin: 20px 0;
+            }
+    
+            .category-button, .exercise-card {
+                display: inline-block;
+                margin: 10px;
+                padding: 10px;
+                border: 1px solid #ccc;
+                cursor: pointer;
+            }
+    
+            .exercise-card.selected {
+                background-color: #007bff;
+                color: white;
+            }
+    
+            .timer-section {
+                margin-top: 20px;
+            }
+    </style>
+</body>
+</html>
