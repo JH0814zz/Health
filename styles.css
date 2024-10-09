@@ -11,7 +11,7 @@ body {
 .container {
     max-width: 800px;
     margin: auto;
-    background: #1e1e1e; /* 다크 모드 컨테이너 */
+    background: #1e1e1e; /* 다크 그레이 컨테이너 */
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
     padding: 20px;
@@ -21,14 +21,14 @@ body {
 h1 {
     font-size: 2.5em;
     text-align: center;
-    color: #1abc9c; /* 청록색으로 변경 */
+    color: #b0bec5; /* 밝은 회색으로 변경 */
     margin-bottom: 20px;
 }
 
 h2 {
     font-size: 1.8em;
     color: #e0e0e0;
-    border-bottom: 2px solid #1abc9c; /* 강조 색상 변경 */
+    border-bottom: 2px solid #b0bec5; /* 강조 색상 변경 */
     padding-bottom: 10px;
     margin-bottom: 20px;
 }
@@ -58,16 +58,16 @@ input {
 }
 
 input:focus {
-    border-color: #1abc9c; /* 강조 색상 */
-    box-shadow: 0 0 5px rgba(26, 188, 156, 0.5);
+    border-color: #b0bec5; /* 강조 색상 변경 */
+    box-shadow: 0 0 5px rgba(176, 190, 197, 0.5);
     outline: none;
 }
 
 /* 버튼 스타일 */
 button {
     padding: 12px;
-    background-color: #1abc9c; /* 버튼 색상 */
-    color: white;
+    background-color: #b0bec5; /* 버튼 색상 */
+    color: black;
     border: none;
     border-radius: 5px;
     cursor: pointer;
@@ -76,7 +76,7 @@ button {
 }
 
 button:hover {
-    background-color: #16a085; /* 강조 색상 */
+    background-color: #90a4ae; /* 강조 색상 */
     transform: scale(1.05);
 }
 
@@ -108,9 +108,9 @@ button:disabled {
 }
 
 .exercise-card.selected {
-    background-color: #1abc9c; /* 선택된 카드 색상 */
-    color: white;
-    border: 2px solid #16a085; /* 선택된 카드의 테두리 */
+    background-color: #b0bec5; /* 선택된 카드 색상 */
+    color: black;
+    border: 2px solid #90a4ae; /* 선택된 카드의 테두리 */
 }
 
 /* 무게 조절 컨테이너 스타일 */
@@ -126,7 +126,7 @@ button:disabled {
 
 /* 무게 조절 버튼 스타일 */
 .weight-button {
-    background-color: #1abc9c; /* 버튼 색상 */
+    background-color: #b0bec5; /* 버튼 색상 */
     border: none;
     border-radius: 5px;
     padding: 10px;
@@ -135,7 +135,7 @@ button:disabled {
 }
 
 .weight-button:hover {
-    background-color: #16a085; /* 강조 색상 */
+    background-color: #90a4ae; /* 강조 색상 */
 }
 
 /* 무게 텍스트 스타일 */
@@ -157,7 +157,6 @@ button:disabled {
     font-weight: bold; /* 굵게 표시 */
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* 약간의 그림자 효과 추가 */
 }
-
 
 /* 히스토리 스타일 */
 .history-list {
